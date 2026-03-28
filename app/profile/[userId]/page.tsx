@@ -1,7 +1,7 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { useParams } from "next/navigation"
+import { useParams, useRouter } from "next/navigation"
 import { useAuth } from "@/contexts/AuthContext"
 import { Header } from "@/components/layout/Header"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
@@ -24,6 +24,7 @@ interface PublicUserProfile {
 
 export default function PublicProfilePage() {
   const params = useParams()
+  const router = useRouter()
   const { user } = useAuth()
   const userId = params.userId as string
 
@@ -112,10 +113,11 @@ export default function PublicProfilePage() {
   }
 
   // Redirect to own profile if viewing self
-  if (user && user.uid === userId) {
-    window.location.href = "/profile"
-    return null
-  }
+  useEffect(() => {
+    if (user && user.uid === userId) {
+      router.push("/profile")
+    }
+  }, [user, userId, router])
 
   return (
     <div className="min-h-screen">
