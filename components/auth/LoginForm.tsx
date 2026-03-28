@@ -31,7 +31,20 @@ export function LoginForm({ onToggleMode }: LoginFormProps) {
     try {
       await signIn(email, password)
     } catch (error: any) {
-      setError(error.message || "Failed to sign in")
+      const errorCode = error.code || error.message
+      const errorMessages: Record<string, string> = {
+        "auth/configuration-not-found": "Firebase Authentication is not enabled in your project. Please enable Email/Password authentication in Firebase Console → Authentication → Sign-in method.",
+        "auth/user-not-found": "No account found with this email",
+        "auth/wrong-password": "Incorrect password",
+        "auth/invalid-email": "Invalid email address",
+        "auth/too-many-requests": "Too many failed attempts. Please try again later.",
+        "auth/user-disabled": "This account has been disabled",
+        "auth/invalid-api-key": "API configuration error. Please check your Firebase setup.",
+      }
+      
+      const userMessage = errorMessages[errorCode] || error.message || "Failed to sign in"
+      setError(userMessage)
+      console.error("SignIn error:", { code: errorCode, message: error.message })
     } finally {
       setLoading(false)
     }

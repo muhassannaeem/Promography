@@ -60,27 +60,37 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }, [])
 
   const signUp = async (email: string, password: string, displayName: string) => {
-    const { user } = await createUserWithEmailAndPassword(auth, email, password)
+    try {
+      const { user } = await createUserWithEmailAndPassword(auth, email, password)
 
-    // Update Firebase Auth profile
-    await updateProfile(user, { displayName })
+      // Update Firebase Auth profile
+      await updateProfile(user, { displayName })
 
-    // Create user profile in Firestore
-    const userProfile: UserProfile = {
-      uid: user.uid,
-      email: user.email!,
-      displayName,
-      bio: "",
-      photoURL: "",
-      createdAt: new Date(),
+      // Create user profile in Firestore
+      const userProfile: UserProfile = {
+        uid: user.uid,
+        email: user.email!,
+        displayName,
+        bio: "",
+        photoURL: "",
+        createdAt: new Date(),
+      }
+
+      await setDoc(doc(db, "users", user.uid), userProfile)
+      setUserProfile(userProfile)
+    } catch (error: any) {
+      console.error("SignUp error:", error.code, error.message)
+      throw error
     }
-
-    await setDoc(doc(db, "users", user.uid), userProfile)
-    setUserProfile(userProfile)
   }
 
   const signIn = async (email: string, password: string) => {
-    await signInWithEmailAndPassword(auth, email, password)
+    try {
+      await signInWithEmailAndPassword(auth, email, password)
+    } catch (error: any) {
+      console.error("SignIn error:", error.code, error.message)
+      throw error
+    }
   }
 
   const logout = async () => {

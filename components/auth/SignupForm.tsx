@@ -29,6 +29,22 @@ export function SignupForm({ onToggleMode }: SignupFormProps) {
     setLoading(true)
     setError("")
 
+    // Validation
+    if (!email.trim()) {
+      setError("Email is required")
+      setLoading(false)
+      return
+    }
+    if (!email.includes("@")) {
+      setError("Please enter a valid email address")
+      setLoading(false)
+      return
+    }
+    if (!displayName.trim()) {
+      setError("Display name is required")
+      setLoading(false)
+      return
+    }
     if (password.length < 6) {
       setError("Password must be at least 6 characters")
       setLoading(false)
@@ -38,7 +54,23 @@ export function SignupForm({ onToggleMode }: SignupFormProps) {
     try {
       await signUp(email, password, displayName)
     } catch (error: any) {
-      setError(error.message || "Failed to create account")
+      // Handle Firebase-specific errors
+      const errorCode = error.code || error.message
+      const errorMessages: Record<string, string> = {
+        "auth/configuration-not-found": "Firebase Authentication is not enabled in your project. Please enable Email/Password authentication in Firebase Console → Authentication → Sign-in method.",
+        "auth/email-already-in-use": "This email is already registered",
+        "auth/invalid-email": "Invalid email address",
+        "auth/weak-password": "Password is too weak (use letters, numbers, symbols)",
+        "auth/operation-not-allowed": "Account creation is not enabled. Enable Email/Password in Firebase Console → Authentication → Sign-in method.",
+        "auth/too-many-requests": "Too many attempts. Please try again later.",
+        "auth/invalid-api-key": "API configuration error. Please check your Firebase setup.",
+        "auth/missing-password": "Password is required",
+        "auth/user-disabled": "This account has been disabled",
+      }
+      
+      const userMessage = errorMessages[errorCode] || error.message || "Failed to create account"
+      setError(userMessage)
+      console.error("Signup error:", { code: errorCode, message: error.message })
     } finally {
       setLoading(false)
     }
